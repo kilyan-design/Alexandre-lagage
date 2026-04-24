@@ -1,606 +1,698 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Phone, 
-  MapPin, 
-  Clock, 
-  Star, 
-  ChevronRight, 
-  CheckCircle2, 
-  Leaf, 
-  TreePine, 
-  Sprout, 
-  Calendar,
-  Menu,
-  X,
-  Calculator,
-  PhoneCall
-} from 'lucide-react';
-
-// --- ANIMATION HOOK ---
-const useScrollAnimation = () => {
-  const [isVisible, setIsVisible] = useState(false);
-  const domRef = useRef();
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          // Optionnel: décommenter pour rejouer l'animation en remontant
-          // } else {
-          //   setIsVisible(false);
-        }
-      });
-    }, { threshold: 0.15 });
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alexandre Élagage - Artisan Paysagiste Premium</title>
     
-    const currentRef = domRef.current;
-    if (currentRef) observer.observe(currentRef);
-    return () => {
-      if (currentRef) observer.unobserve(currentRef);
-    };
-  }, []);
+    <!-- Polices Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS (via CDN pour GitHub Pages) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        forest: '#0f291e',
+                        gold: '#d4af37',
+                        cream: '#fcfaf8'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
 
-  return { isVisible, domRef };
-};
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-const FadeInSection = ({ children, delay = 0, className = "" }) => {
-  const { isVisible, domRef } = useScrollAnimation();
-  return (
-    <div
-      ref={domRef}
-      className={`transition-all duration-1000 ease-out ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
-      } ${className}`}
-      style={{ transitionDelay: `${delay}ms` }}
-    >
-      {children}
-    </div>
-  );
-};
+    <style>
+        /* Animations CSS personnalisées */
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(3rem);
+            visibility: hidden;
+            transition: opacity 1s ease-out, transform 1s ease-out;
+            will-change: opacity, visibility;
+        }
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: none;
+            visibility: visible;
+        }
+        /* Cache la scrollbar mais garde le défilement */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-cream text-stone-800 font-sans antialiased overflow-x-hidden">
 
-// --- MAIN APPLICATION COMPONENT ---
-export default function App() {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // Inject Fonts
-  useEffect(() => {
-    const link = document.createElement('link');
-    link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap';
-    link.rel = 'stylesheet';
-    document.head.appendChild(link);
-
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const fontFamilyStyles = {
-    serif: { fontFamily: "'Playfair Display', serif" },
-    sans: { fontFamily: "'Inter', sans-serif" }
-  };
-
-  return (
-    <div className="bg-[#fcfaf8] text-stone-800" style={fontFamilyStyles.sans}>
-      
-      {/* NAVBAR */}
-      <nav className={`fixed w-full z-50 transition-all duration-500 ${isScrolled ? 'bg-[#0f291e]/95 backdrop-blur-md shadow-lg py-3' : 'bg-transparent py-6'}`}>
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Leaf className="w-8 h-8 text-[#d4af37]" />
-            <span className="text-white text-xl lg:text-2xl font-semibold tracking-wide" style={fontFamilyStyles.serif}>
-              Alexandre Élagage
-            </span>
-          </div>
-
-          {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-8">
-            <a href="#services" className="text-white hover:text-[#d4af37] transition-colors text-sm font-medium tracking-wider uppercase">Services</a>
-            <a href="#avis" className="text-white hover:text-[#d4af37] transition-colors text-sm font-medium tracking-wider uppercase">Avis</a>
-            <a href="#simulateur" className="text-white hover:text-[#d4af37] transition-colors text-sm font-medium tracking-wider uppercase">Devis</a>
-            <a href="#contact" className="bg-[#d4af37] text-[#0f291e] px-6 py-2.5 rounded-full font-semibold hover:bg-white transition-all transform hover:scale-105 flex items-center gap-2">
-              <Phone className="w-4 h-4" />
-              06 22 52 99 42
-            </a>
-          </div>
-
-          {/* Mobile Menu Toggle */}
-          <button className="lg:hidden text-white" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
-          </button>
-        </div>
-
-        {/* Mobile Menu */}
-        <div className={`lg:hidden absolute top-full left-0 w-full bg-[#0f291e] shadow-xl transition-all duration-300 overflow-hidden ${mobileMenuOpen ? 'max-h-96 border-t border-white/10' : 'max-h-0'}`}>
-          <div className="flex flex-col px-6 py-4 gap-4">
-             <a href="#services" onClick={() => setMobileMenuOpen(false)} className="text-white/80 hover:text-[#d4af37] py-2 border-b border-white/10">Services</a>
-             <a href="#simulateur" onClick={() => setMobileMenuOpen(false)} className="text-white/80 hover:text-[#d4af37] py-2 border-b border-white/10">Simuler un devis</a>
-             <a href="#rappel" onClick={() => setMobileMenuOpen(false)} className="text-white/80 hover:text-[#d4af37] py-2 border-b border-white/10">Être rappelé</a>
-             <a href="tel:0622529942" className="text-[#d4af37] font-semibold py-2 flex items-center gap-2">
-              <Phone className="w-5 h-5" /> Appeler le 06 22 52 99 42
-             </a>
-          </div>
-        </div>
-      </nav>
-
-      {/* HERO SECTION */}
-      <section className="relative min-h-[90vh] flex items-center justify-center pt-20">
-        <div className="absolute inset-0 z-0">
-          <img 
-            src="https://image.pollinations.ai/prompt/Beautiful%20majestic%20tree%20in%20a%20green%20park%20sunny%20day%20landscape%20photography?width=1920&height=1080&nologo=true" 
-            alt="Majestic tree in forest" 
-            className="w-full h-full object-cover"
-            onError={(e) => { e.target.onerror = null; e.target.src = 'https://picsum.photos/id/28/1920/1080' }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0f291e]/90 via-[#0f291e]/70 to-transparent"></div>
-        </div>
-
-        <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 w-full">
-          <FadeInSection>
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 text-white px-4 py-2 rounded-full text-sm font-medium mb-6">
-              <Star className="w-4 h-4 text-[#d4af37] fill-current" />
-              <span>Noté 5.0/5 sur Google (Cabriès & alentours)</span>
-            </div>
-          </FadeInSection>
-          
-          <FadeInSection delay={200}>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl text-white font-bold leading-tight max-w-3xl mb-6" style={fontFamilyStyles.serif}>
-              L'Excellence de l'Élagage & <span className="text-[#d4af37] italic">du Paysagisme</span>
-            </h1>
-          </FadeInSection>
-          
-          <FadeInSection delay={400}>
-            <p className="text-lg md:text-xl text-white/80 max-w-2xl mb-10 font-light leading-relaxed">
-              Intervention rapide, taille structurée et respect de l'environnement. Confiez vos arbres et votre jardin à un artisan confirmé intervenant à Cabriès, Calas et environs.
-            </p>
-          </FadeInSection>
-
-          <FadeInSection delay={600} className="flex flex-col sm:flex-row gap-4">
-            <a href="#simulateur" className="bg-[#d4af37] text-[#0f291e] px-8 py-4 rounded-full font-bold hover:bg-white transition-all text-center flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(212,175,55,0.3)]">
-              <Calculator className="w-5 h-5" />
-              Estimer mon projet
-            </a>
-            <a href="#rappel" className="bg-white/10 backdrop-blur-md text-white border border-white/30 px-8 py-4 rounded-full font-bold hover:bg-white hover:text-[#0f291e] transition-all text-center flex items-center justify-center gap-2">
-              <PhoneCall className="w-5 h-5" />
-              Être rappelé
-            </a>
-          </FadeInSection>
-        </div>
-      </section>
-
-      {/* QUICK INFOS BAR */}
-      <div className="bg-[#0f291e] border-t border-white/10 relative z-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center md:text-left divide-y md:divide-y-0 md:divide-x divide-white/10">
-            <div className="flex items-center justify-center md:justify-start gap-4 text-white/80 pt-4 md:pt-0">
-              <MapPin className="w-8 h-8 text-[#d4af37]" />
-              <div>
-                <p className="font-semibold text-white">Zone d'intervention</p>
-                <p className="text-sm">Cabriès, Calas & alentours</p>
-              </div>
-            </div>
-            <div className="flex items-center justify-center md:justify-center gap-4 text-white/80 pt-4 md:pt-0">
-              <Clock className="w-8 h-8 text-[#d4af37]" />
-              <div>
-                <p className="font-semibold text-white">Horaires d'ouverture</p>
-                <p className="text-sm">Du Lundi au Samedi jusqu'à 19:30</p>
-              </div>
-            </div>
-            <div className="flex items-center justify-center md:justify-end gap-4 text-white/80 pt-4 md:pt-0">
-              <CheckCircle2 className="w-8 h-8 text-[#d4af37]" />
-              <div>
-                <p className="font-semibold text-white">Intervention Sécurisée</p>
-                <p className="text-sm">Évacuation des déchets incluse</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* EXPERTISE / SERVICES */}
-      <section id="services" className="py-24 bg-[#fcfaf8]">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <FadeInSection className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold text-[#0f291e] mb-6" style={fontFamilyStyles.serif}>Notre Savoir-Faire</h2>
-            <div className="w-24 h-1 bg-[#d4af37] mx-auto mb-6"></div>
-            <p className="text-stone-600 text-lg">
-              De l'abattage délicat à la création d'espaces verts, nous mettons notre expertise au service de votre extérieur.
-            </p>
-          </FadeInSection>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Élagage & Abattage",
-                desc: "Taille structurée (cyprès, peupliers...), soins aux arbres et abattage sécurisé de sujets complexes ou dangereux.",
-                icon: <TreePine className="w-8 h-8 text-[#d4af37]" />,
-                img: "https://image.pollinations.ai/prompt/Professional%20tree%20pruning%20service%20arborist%20daylight%20photography?width=800&height=600&nologo=true",
-                fallback: "https://picsum.photos/id/114/800/600"
-              },
-              {
-                title: "Entretien de Jardin",
-                desc: "Taille de haies, tonte, débroussaillage. Un entretien régulier pour conserver un extérieur propre et sain.",
-                icon: <Leaf className="w-8 h-8 text-[#d4af37]" />,
-                img: "https://image.pollinations.ai/prompt/Perfectly%20maintained%20green%20lawn%20garden%20hedges%20landscape%20photography?width=800&height=600&nologo=true",
-                fallback: "https://picsum.photos/id/163/800/600"
-              },
-              {
-                title: "Aménagement Paysager",
-                desc: "Plantations personnalisées, pose de gazon synthétique de haute qualité, création de massifs et valorisation d'espaces.",
-                icon: <Sprout className="w-8 h-8 text-[#d4af37]" />,
-                img: "https://image.pollinations.ai/prompt/Modern%20garden%20landscaping%20plants%20stones%20grass%20photography?width=800&height=600&nologo=true",
-                fallback: "https://picsum.photos/id/284/800/600"
-              }
-            ].map((service, index) => (
-              <FadeInSection key={index} delay={index * 200}>
-                <div className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-stone-100 h-full flex flex-col">
-                  <div className="h-56 overflow-hidden relative">
-                    <div className="absolute inset-0 bg-[#0f291e]/20 group-hover:bg-transparent transition-colors z-10"></div>
-                    <img 
-                      src={service.img} 
-                      alt={service.title} 
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                      onError={(e) => { e.target.onerror = null; e.target.src = service.fallback }}
-                    />
-                  </div>
-                  <div className="p-8 flex flex-col flex-grow">
-                    <div className="bg-[#fcfaf8] w-16 h-16 rounded-full flex items-center justify-center -mt-16 relative z-20 mb-6 shadow-md border border-stone-100">
-                      {service.icon}
-                    </div>
-                    <h3 className="text-xl font-bold text-[#0f291e] mb-4" style={fontFamilyStyles.serif}>{service.title}</h3>
-                    <p className="text-stone-600 mb-6 flex-grow leading-relaxed">{service.desc}</p>
-                    <a href="#simulateur" className="text-[#0f291e] font-semibold flex items-center gap-2 group-hover:text-[#d4af37] transition-colors w-fit">
-                      Demander un devis <ChevronRight className="w-4 h-4" />
-                    </a>
-                  </div>
-                </div>
-              </FadeInSection>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* DUAL INTERACTIVE SECTION: SIMULATEUR & RAPPEL */}
-      <section className="py-24 bg-[#0f291e] relative overflow-hidden" id="simulateur">
-        {/* Abstract background pattern */}
-        <div className="absolute top-[-10%] right-[-5%] w-96 h-96 bg-[#d4af37] rounded-full blur-[150px] opacity-20"></div>
-        <div className="absolute bottom-[-10%] left-[-5%] w-96 h-96 bg-[#2a5a40] rounded-full blur-[150px] opacity-40"></div>
-
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-            
-            {/* LEFT: SIMULATEUR DE DEVIS */}
-            <FadeInSection>
-              <div className="bg-white rounded-3xl p-8 md:p-10 shadow-2xl relative">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#d4af37]/10 rounded-bl-full -z-10"></div>
-                <h2 className="text-3xl font-bold text-[#0f291e] mb-2" style={fontFamilyStyles.serif}>Estimation en Ligne</h2>
-                <p className="text-stone-500 mb-8">Obtenez une idée du budget pour votre projet en quelques clics.</p>
-                <DevisSimulator />
-              </div>
-            </FadeInSection>
-
-            {/* RIGHT: DEMANDE DE RAPPEL */}
-            <FadeInSection delay={200} id="rappel" className="flex flex-col justify-center">
-              <h2 className="text-3xl md:text-5xl font-bold text-white mb-6" style={fontFamilyStyles.serif}>Besoin de nous parler ?</h2>
-              <p className="text-white/80 text-lg mb-10 leading-relaxed">
-                Remplissez vos disponibilités et Alexandre vous rappellera personnellement pour discuter de votre jardin, planifier une visite technique ou valider un devis.
-              </p>
-              
-              <div className="bg-white/5 backdrop-blur-xl border border-white/20 rounded-3xl p-8">
-                <CallbackForm />
-              </div>
-            </FadeInSection>
-
-          </div>
-        </div>
-      </section>
-
-      {/* TESTIMONIALS */}
-      <section id="avis" className="py-24 bg-[#fcfaf8]">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <FadeInSection className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold text-[#0f291e] mb-6" style={fontFamilyStyles.serif}>Avis de nos clients</h2>
-            <div className="flex justify-center items-center gap-2 mb-4">
-              {[1, 2, 3, 4, 5].map(i => <Star key={i} className="w-6 h-6 text-[#d4af37] fill-current" />)}
-            </div>
-            <p className="text-stone-600 text-lg">Note de 5,0/5 basée sur les avis Google certifiés.</p>
-          </FadeInSection>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { name: "jade ortica", time: "il y a 2 mois", text: "Je recommande intervention rapide très professionnel abattage d'un peuplier réussi" },
-              { name: "iliasse saadi", time: "il y a 2 semaines", text: "J’ai fait appel à Alexandre pour une plantation de différentes plantes ainsi que la pose d’un gazon synthétique dans mon jardin, et je suis absolument ravi du résultat. Le travail est soigné, la plantation est superbe et le gazon..." },
-              { name: "christophe Bourrelly", time: "il y a 3 semaines", text: "Je suis très satisfait, je remercie MR Bouillon et son équipe pour mon jardin, entreprise sérieuse et efficace , je recommande !!" }
-            ].map((review, i) => (
-              <FadeInSection key={i} delay={i * 200}>
-                <div className="bg-white p-8 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-stone-100 relative h-full flex flex-col">
-                  <div className="absolute top-6 right-6 text-stone-200">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/></svg>
-                  </div>
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 bg-[#0f291e] text-[#d4af37] rounded-full flex items-center justify-center font-bold text-xl uppercase">
-                      {review.name.charAt(0)}
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-stone-800 capitalize">{review.name}</h4>
-                      <div className="flex gap-1">
-                        {[1, 2, 3, 4, 5].map(star => <Star key={star} className="w-3 h-3 text-[#d4af37] fill-current" />)}
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-stone-600 italic flex-grow">"{review.text}"</p>
-                  <p className="text-stone-400 text-sm mt-6">{review.time}</p>
-                </div>
-              </FadeInSection>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* RECENT WORK BANNER */}
-      <section className="bg-white border-t border-b border-stone-200 py-16">
-         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row items-center gap-8">
-               <div className="w-full md:w-1/3 relative rounded-2xl overflow-hidden shadow-lg h-64">
-                 <img 
-                   src="https://image.pollinations.ai/prompt/Row%20of%20Florentine%20cypress%20trees%20sunny%20garden%20photography?width=800&height=600&nologo=true" 
-                   alt="Cyprès florentins" 
-                   className="w-full h-full object-cover" 
-                   onError={(e) => { e.target.onerror = null; e.target.src = 'https://picsum.photos/id/10/800/600' }}
-                 />
-                 <div className="absolute inset-0 bg-black/20"></div>
-                 <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider text-[#0f291e]">Projet Récent</div>
-               </div>
-               <div className="w-full md:w-2/3">
-                  <h3 className="text-2xl font-bold text-[#0f291e] mb-4" style={fontFamilyStyles.serif}>Intervention à Calas : Taille de Cyprès Florentins</h3>
-                  <p className="text-stone-600 mb-4 leading-relaxed">
-                    Nous sommes récemment intervenus pour une taille soignée visant à redonner une silhouette élégante et maîtriser la hauteur, tout en préservant la santé des arbres. Les cyprès demandent un entretien régulier pour conserver leur port élancé.
-                  </p>
-                  <ul className="text-stone-600 space-y-2 mb-6">
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5 text-[#d4af37]" /> Taille structurée et harmonieuse</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5 text-[#d4af37]" /> Intervention sécurisée</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5 text-[#d4af37]" /> Évacuation des déchets verts incluse</li>
-                  </ul>
-               </div>
-            </div>
-         </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer id="contact" className="bg-[#0a1c14] pt-20 pb-10 border-t-4 border-[#d4af37]">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
-            
-            <div className="col-span-1 lg:col-span-2">
-              <div className="flex items-center gap-2 mb-6">
-                <Leaf className="w-8 h-8 text-[#d4af37]" />
-                <span className="text-white text-2xl font-semibold tracking-wide" style={fontFamilyStyles.serif}>
-                  Alexandre Élagage
+    <!-- NAVBAR -->
+    <nav id="navbar" class="fixed w-full z-50 transition-all duration-500 bg-transparent py-6">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <i data-lucide="leaf" class="w-8 h-8 text-gold"></i>
+                <span class="text-white text-xl lg:text-2xl font-semibold tracking-wide font-serif">
+                    Alexandre Élagage
                 </span>
-              </div>
-              <p className="text-white/60 text-sm leading-relaxed max-w-sm mb-8">
-                Artisan paysagiste et élagueur professionnel. Expertise, sécurité et respect de l'environnement pour sublimer vos espaces extérieurs à Cabriès et ses environs.
-              </p>
-              <div className="flex gap-4">
-                 <a href="https://maps.app.goo.gl/x7KKLDc8JmDsAyra8" target="_blank" rel="noreferrer" className="bg-white/10 hover:bg-[#d4af37] hover:text-[#0f291e] text-white p-3 rounded-full transition-colors">
-                    <MapPin className="w-5 h-5" />
-                 </a>
-              </div>
             </div>
 
-            <div>
-              <h4 className="text-white font-bold mb-6 tracking-wider uppercase text-sm">Contact & Accès</h4>
-              <ul className="space-y-4 text-white/70 text-sm">
-                <li className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-[#d4af37] flex-shrink-0" />
-                  <a href="https://maps.app.goo.gl/x7KKLDc8JmDsAyra8" target="_blank" rel="noreferrer" className="hover:text-[#d4af37] transition-colors">
-                    1217 Chem. des Vaneu<br/>13480 Cabriès
-                  </a>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-[#d4af37] flex-shrink-0" />
-                  <a href="tel:0622529942" className="hover:text-[#d4af37] transition-colors">06 22 52 99 42</a>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Clock className="w-5 h-5 text-[#d4af37] flex-shrink-0" />
-                  <span>Ouvert tous les jours<br/>Ferme à 19:30</span>
-                </li>
-              </ul>
+            <!-- Desktop Nav -->
+            <div class="hidden lg:flex items-center gap-8">
+                <a href="#services" class="text-white hover:text-gold transition-colors text-sm font-medium tracking-wider uppercase">Services</a>
+                <a href="#avis" class="text-white hover:text-gold transition-colors text-sm font-medium tracking-wider uppercase">Avis</a>
+                <a href="#simulateur" class="text-white hover:text-gold transition-colors text-sm font-medium tracking-wider uppercase">Devis</a>
+                <a href="#contact" class="bg-gold text-forest px-6 py-2.5 rounded-full font-semibold hover:bg-white transition-all transform hover:scale-105 flex items-center gap-2">
+                    <i data-lucide="phone" class="w-4 h-4"></i>
+                    06 22 52 99 42
+                </a>
             </div>
 
-            <div>
-              <h4 className="text-white font-bold mb-6 tracking-wider uppercase text-sm">Liens Rapides</h4>
-              <ul className="space-y-3 text-white/70 text-sm">
-                <li><a href="#services" className="hover:text-[#d4af37] transition-colors">Nos Services</a></li>
-                <li><a href="#avis" className="hover:text-[#d4af37] transition-colors">Avis Clients</a></li>
-                <li><a href="#simulateur" className="hover:text-[#d4af37] transition-colors">Simulateur de prix</a></li>
-                <li><a href="#rappel" className="hover:text-[#d4af37] transition-colors">Prendre Rendez-vous</a></li>
-              </ul>
-            </div>
-
-          </div>
-          
-          <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-white/40 text-xs">
-            <p>© 2026 Alexandre Élagage. Tous droits réservés.</p>
-            <p>Conception Premium Artisanat</p>
-          </div>
+            <!-- Mobile Menu Toggle -->
+            <button id="mobile-menu-btn" class="lg:hidden text-white focus:outline-none">
+                <i data-lucide="menu" class="w-8 h-8" id="menu-icon"></i>
+            </button>
         </div>
-      </footer>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="lg:hidden absolute top-full left-0 w-full bg-forest shadow-xl transition-all duration-300 overflow-hidden max-h-0">
+            <div class="flex flex-col px-6 py-4 gap-4">
+                <a href="#services" class="mobile-link text-white/80 hover:text-gold py-2 border-b border-white/10">Services</a>
+                <a href="#simulateur" class="mobile-link text-white/80 hover:text-gold py-2 border-b border-white/10">Simuler un devis</a>
+                <a href="#rappel" class="mobile-link text-white/80 hover:text-gold py-2 border-b border-white/10">Être rappelé</a>
+                <a href="tel:0622529942" class="text-gold font-semibold py-2 flex items-center gap-2">
+                    <i data-lucide="phone" class="w-5 h-5"></i> Appeler le 06 22 52 99 42
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="relative min-h-[90vh] flex items-center justify-center pt-20">
+        <div class="absolute inset-0 z-0">
+            <img 
+                src="https://image.pollinations.ai/prompt/Beautiful%20majestic%20tree%20in%20a%20green%20park%20sunny%20day%20landscape%20photography?width=1920&height=1080&nologo=true" 
+                alt="Arbre majestueux" 
+                class="w-full h-full object-cover"
+                onerror="this.onerror=null; this.src='https://picsum.photos/id/28/1920/1080';"
+            />
+            <div class="absolute inset-0 bg-gradient-to-r from-forest/90 via-forest/70 to-transparent"></div>
+        </div>
+
+        <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 w-full">
+            <div class="fade-in-section inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 text-white px-4 py-2 rounded-full text-sm font-medium mb-6">
+                <i data-lucide="star" class="w-4 h-4 text-gold fill-current"></i>
+                <span>Noté 5.0/5 sur Google (Cabriès & alentours)</span>
+            </div>
+            
+            <div class="fade-in-section" style="transition-delay: 200ms;">
+                <h1 class="text-4xl md:text-6xl lg:text-7xl text-white font-bold leading-tight max-w-3xl mb-6 font-serif">
+                    L'Excellence de l'Élagage & <span class="text-gold italic">du Paysagisme</span>
+                </h1>
+            </div>
+            
+            <div class="fade-in-section" style="transition-delay: 400ms;">
+                <p class="text-lg md:text-xl text-white/80 max-w-2xl mb-10 font-light leading-relaxed">
+                    Intervention rapide, taille structurée et respect de l'environnement. Confiez vos arbres et votre jardin à un artisan confirmé intervenant à Cabriès, Calas et environs.
+                </p>
+            </div>
+
+            <div class="fade-in-section flex flex-col sm:flex-row gap-4" style="transition-delay: 600ms;">
+                <a href="#simulateur" class="bg-gold text-forest px-8 py-4 rounded-full font-bold hover:bg-white transition-all text-center flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(212,175,55,0.3)]">
+                    <i data-lucide="calculator" class="w-5 h-5"></i>
+                    Estimer mon projet
+                </a>
+                <a href="#rappel" class="bg-white/10 backdrop-blur-md text-white border border-white/30 px-8 py-4 rounded-full font-bold hover:bg-white hover:text-forest transition-all text-center flex items-center justify-center gap-2">
+                    <i data-lucide="phone-call" class="w-5 h-5"></i>
+                    Être rappelé
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- QUICK INFOS BAR -->
+    <div class="bg-forest border-t border-white/10 relative z-20">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8 py-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center md:text-left divide-y md:divide-y-0 md:divide-x divide-white/10">
+                <div class="flex items-center justify-center md:justify-start gap-4 text-white/80 pt-4 md:pt-0">
+                    <i data-lucide="map-pin" class="w-8 h-8 text-gold"></i>
+                    <div>
+                        <p class="font-semibold text-white">Zone d'intervention</p>
+                        <p class="text-sm">Cabriès, Calas & alentours</p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-center gap-4 text-white/80 pt-4 md:pt-0">
+                    <i data-lucide="clock" class="w-8 h-8 text-gold"></i>
+                    <div>
+                        <p class="font-semibold text-white">Horaires d'ouverture</p>
+                        <p class="text-sm">Du Lundi au Samedi jusqu'à 19:30</p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-center md:justify-end gap-4 text-white/80 pt-4 md:pt-0">
+                    <i data-lucide="check-circle-2" class="w-8 h-8 text-gold"></i>
+                    <div>
+                        <p class="font-semibold text-white">Intervention Sécurisée</p>
+                        <p class="text-sm">Évacuation des déchets incluse</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  );
-}
 
-// --- SUB-COMPONENTS ---
+    <!-- EXPERTISE / SERVICES -->
+    <section id="services" class="py-24 bg-cream">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="fade-in-section text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-3xl md:text-5xl font-bold text-forest mb-6 font-serif">Notre Savoir-Faire</h2>
+                <div class="w-24 h-1 bg-gold mx-auto mb-6"></div>
+                <p class="text-stone-600 text-lg">
+                    De l'abattage délicat à la création d'espaces verts, nous mettons notre expertise au service de votre extérieur.
+                </p>
+            </div>
 
-// 1. Devis Simulator Logic
-function DevisSimulator() {
-  const [step, setStep] = useState(1);
-  const [service, setService] = useState('');
-  const [size, setSize] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Service 1 -->
+                <div class="fade-in-section group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-stone-100 h-full flex flex-col" style="transition-delay: 0ms;">
+                    <div class="h-56 overflow-hidden relative">
+                        <div class="absolute inset-0 bg-forest/20 group-hover:bg-transparent transition-colors z-10"></div>
+                        <img 
+                            src="https://image.pollinations.ai/prompt/Professional%20tree%20pruning%20service%20arborist%20daylight%20photography?width=800&height=600&nologo=true" 
+                            alt="Élagage & Abattage" 
+                            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                            onerror="this.onerror=null; this.src='https://picsum.photos/id/114/800/600';"
+                        />
+                    </div>
+                    <div class="p-8 flex flex-col flex-grow">
+                        <div class="bg-cream w-16 h-16 rounded-full flex items-center justify-center -mt-16 relative z-20 mb-6 shadow-md border border-stone-100">
+                            <i data-lucide="tree-pine" class="w-8 h-8 text-gold"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-forest mb-4 font-serif">Élagage & Abattage</h3>
+                        <p class="text-stone-600 mb-6 flex-grow leading-relaxed">Taille structurée (cyprès, peupliers...), soins aux arbres et abattage sécurisé de sujets complexes ou dangereux.</p>
+                        <a href="#simulateur" class="text-forest font-semibold flex items-center gap-2 group-hover:text-gold transition-colors w-fit">
+                            Demander un devis <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+                </div>
 
-  const calculateEstimate = () => {
-    setLoading(true);
-    setTimeout(() => {
-      let min = 0; let max = 0;
-      if (service === 'elagage') {
-        min = size === 'petit' ? 100 : size === 'moyen' ? 250 : 500;
-        max = size === 'petit' ? 250 : size === 'moyen' ? 600 : 1500;
-      } else if (service === 'abattage') {
-        min = size === 'petit' ? 200 : size === 'moyen' ? 500 : 1000;
-        max = size === 'petit' ? 450 : size === 'moyen' ? 1200 : 3000;
-      } else {
-        min = 50; max = 300; // Entretien de base
-      }
-      setResult(`Environ ${min}€ à ${max}€ *`);
-      setLoading(false);
-      setStep(3);
-    }, 1200);
-  };
+                <!-- Service 2 -->
+                <div class="fade-in-section group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-stone-100 h-full flex flex-col" style="transition-delay: 200ms;">
+                    <div class="h-56 overflow-hidden relative">
+                        <div class="absolute inset-0 bg-forest/20 group-hover:bg-transparent transition-colors z-10"></div>
+                        <img 
+                            src="https://image.pollinations.ai/prompt/Perfectly%20maintained%20green%20lawn%20garden%20hedges%20landscape%20photography?width=800&height=600&nologo=true" 
+                            alt="Entretien de Jardin" 
+                            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                            onerror="this.onerror=null; this.src='https://picsum.photos/id/163/800/600';"
+                        />
+                    </div>
+                    <div class="p-8 flex flex-col flex-grow">
+                        <div class="bg-cream w-16 h-16 rounded-full flex items-center justify-center -mt-16 relative z-20 mb-6 shadow-md border border-stone-100">
+                            <i data-lucide="leaf" class="w-8 h-8 text-gold"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-forest mb-4 font-serif">Entretien de Jardin</h3>
+                        <p class="text-stone-600 mb-6 flex-grow leading-relaxed">Taille de haies, tonte, débroussaillage. Un entretien régulier pour conserver un extérieur propre et sain.</p>
+                        <a href="#simulateur" class="text-forest font-semibold flex items-center gap-2 group-hover:text-gold transition-colors w-fit">
+                            Demander un devis <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+                </div>
 
-  const reset = () => {
-    setStep(1); setService(''); setSize(''); setResult(null);
-  };
-
-  return (
-    <div className="min-h-[300px]">
-      {/* STEP 1 */}
-      {step === 1 && (
-        <div className="animate-fade-in">
-          <label className="block text-sm font-semibold text-stone-700 mb-4">1. Quel est votre besoin principal ?</label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {[
-              { id: 'elagage', label: 'Élagage / Taille' },
-              { id: 'abattage', label: 'Abattage' },
-              { id: 'entretien', label: 'Entretien Jardin' },
-              { id: 'amenagement', label: 'Création / Gazon' }
-            ].map((item) => (
-              <button
-                key={item.id}
-                onClick={() => { setService(item.id); setStep(2); }}
-                className="p-4 border-2 border-stone-100 rounded-xl text-left hover:border-[#d4af37] hover:bg-[#d4af37]/5 transition-all text-stone-700 font-medium"
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
+                <!-- Service 3 -->
+                <div class="fade-in-section group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-stone-100 h-full flex flex-col" style="transition-delay: 400ms;">
+                    <div class="h-56 overflow-hidden relative">
+                        <div class="absolute inset-0 bg-forest/20 group-hover:bg-transparent transition-colors z-10"></div>
+                        <img 
+                            src="https://image.pollinations.ai/prompt/Modern%20garden%20landscaping%20plants%20stones%20grass%20photography?width=800&height=600&nologo=true" 
+                            alt="Aménagement Paysager" 
+                            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                            onerror="this.onerror=null; this.src='https://picsum.photos/id/284/800/600';"
+                        />
+                    </div>
+                    <div class="p-8 flex flex-col flex-grow">
+                        <div class="bg-cream w-16 h-16 rounded-full flex items-center justify-center -mt-16 relative z-20 mb-6 shadow-md border border-stone-100">
+                            <i data-lucide="sprout" class="w-8 h-8 text-gold"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-forest mb-4 font-serif">Aménagement Paysager</h3>
+                        <p class="text-stone-600 mb-6 flex-grow leading-relaxed">Plantations personnalisées, pose de gazon synthétique de haute qualité, création de massifs et valorisation d'espaces.</p>
+                        <a href="#simulateur" class="text-forest font-semibold flex items-center gap-2 group-hover:text-gold transition-colors w-fit">
+                            Demander un devis <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
-      )}
+    </section>
 
-      {/* STEP 2 */}
-      {step === 2 && (
-        <div className="animate-fade-in">
-          <button onClick={() => setStep(1)} className="text-sm text-stone-400 hover:text-[#0f291e] mb-4 flex items-center gap-1">
-            ← Retour
-          </button>
-          <label className="block text-sm font-semibold text-stone-700 mb-4">
-            2. {service === 'amenagement' || service === 'entretien' ? "Taille de la surface ?" : "Taille de l'arbre ?"}
-          </label>
-          <div className="grid grid-cols-1 gap-3 mb-6">
-            {[
-              { id: 'petit', label: 'Petit (Moins de 5m / 50m²)' },
-              { id: 'moyen', label: 'Moyen (5 à 15m / 50-200m²)' },
-              { id: 'grand', label: 'Grand (Plus de 15m / +200m²)' }
-            ].map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setSize(item.id)}
-                className={`p-4 border-2 rounded-xl text-left transition-all font-medium ${size === item.id ? 'border-[#0f291e] bg-[#0f291e] text-white' : 'border-stone-100 text-stone-700 hover:border-[#d4af37]'}`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-          <button 
-            onClick={calculateEstimate}
-            disabled={!size}
-            className={`w-full py-4 rounded-xl font-bold transition-all flex justify-center items-center gap-2 ${size ? 'bg-[#d4af37] text-[#0f291e] hover:bg-[#c49f2b]' : 'bg-stone-100 text-stone-400 cursor-not-allowed'}`}
-          >
-            {loading ? <span className="animate-pulse">Calcul en cours...</span> : 'Calculer l\'estimation'}
-          </button>
-        </div>
-      )}
+    <!-- DUAL INTERACTIVE SECTION: SIMULATEUR & RAPPEL -->
+    <section class="py-24 bg-forest relative overflow-hidden" id="simulateur">
+        <!-- Abstract background pattern -->
+        <div class="absolute top-[-10%] right-[-5%] w-96 h-96 bg-gold rounded-full blur-[150px] opacity-20 pointer-events-none"></div>
+        <div class="absolute bottom-[-10%] left-[-5%] w-96 h-96 bg-[#2a5a40] rounded-full blur-[150px] opacity-40 pointer-events-none"></div>
 
-      {/* STEP 3 */}
-      {step === 3 && (
-        <div className="animate-fade-in text-center py-6">
-          <div className="w-16 h-16 bg-[#0f291e]/10 text-[#0f291e] rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle2 className="w-8 h-8" />
-          </div>
-          <p className="text-stone-500 mb-2">Estimation budgétaire :</p>
-          <p className="text-4xl font-bold text-[#0f291e] mb-2">{result}</p>
-          <p className="text-xs text-stone-400 mb-8">*Ceci est une estimation. Un devis sur place est nécessaire pour un prix exact.</p>
-          
-          <div className="flex flex-col gap-3">
-             <a href="#rappel" className="w-full py-4 bg-[#0f291e] text-white rounded-xl font-bold hover:bg-[#1a4231] transition-all">
-               Demander une visite technique gratuite
-             </a>
-             <button onClick={reset} className="text-sm text-stone-500 hover:text-[#0f291e] underline">
-               Refaire une simulation
-             </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+        <div class="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                
+                <!-- LEFT: SIMULATEUR DE DEVIS -->
+                <div class="fade-in-section">
+                    <div class="bg-white rounded-3xl p-8 md:p-10 shadow-2xl relative min-h-[400px]">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-gold/10 rounded-bl-full -z-10"></div>
+                        <h2 class="text-3xl font-bold text-forest mb-2 font-serif">Estimation en Ligne</h2>
+                        <p class="text-stone-500 mb-8">Obtenez une idée du budget pour votre projet en quelques clics.</p>
+                        
+                        <!-- Étape 1 -->
+                        <div id="sim-step-1" class="transition-opacity duration-500">
+                            <label class="block text-sm font-semibold text-stone-700 mb-4">1. Quel est votre besoin principal ?</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <button onclick="setService('elagage')" class="p-4 border-2 border-stone-100 rounded-xl text-left hover:border-gold hover:bg-gold/5 transition-all text-stone-700 font-medium">Élagage / Taille</button>
+                                <button onclick="setService('abattage')" class="p-4 border-2 border-stone-100 rounded-xl text-left hover:border-gold hover:bg-gold/5 transition-all text-stone-700 font-medium">Abattage</button>
+                                <button onclick="setService('entretien')" class="p-4 border-2 border-stone-100 rounded-xl text-left hover:border-gold hover:bg-gold/5 transition-all text-stone-700 font-medium">Entretien Jardin</button>
+                                <button onclick="setService('amenagement')" class="p-4 border-2 border-stone-100 rounded-xl text-left hover:border-gold hover:bg-gold/5 transition-all text-stone-700 font-medium">Création / Gazon</button>
+                            </div>
+                        </div>
 
-// 2. Callback Request Form
-function CallbackForm() {
-  const [submitted, setSubmitted] = useState(false);
-  
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setSubmitted(true);
-    // Ici intégrer l'API d'envoi d'email (ex: EmailJS)
-  };
+                        <!-- Étape 2 -->
+                        <div id="sim-step-2" class="hidden transition-opacity duration-500">
+                            <button onclick="goToStep1()" class="text-sm text-stone-400 hover:text-forest mb-4 flex items-center gap-1">
+                                ← Retour
+                            </button>
+                            <label id="sim-step-2-question" class="block text-sm font-semibold text-stone-700 mb-4">2. Taille du projet ?</label>
+                            <div class="grid grid-cols-1 gap-3 mb-6">
+                                <button onclick="setSize('petit', this)" class="size-btn p-4 border-2 border-stone-100 rounded-xl text-left transition-all font-medium text-stone-700 hover:border-gold">Petit (Moins de 5m / 50m²)</button>
+                                <button onclick="setSize('moyen', this)" class="size-btn p-4 border-2 border-stone-100 rounded-xl text-left transition-all font-medium text-stone-700 hover:border-gold">Moyen (5 à 15m / 50-200m²)</button>
+                                <button onclick="setSize('grand', this)" class="size-btn p-4 border-2 border-stone-100 rounded-xl text-left transition-all font-medium text-stone-700 hover:border-gold">Grand (Plus de 15m / +200m²)</button>
+                            </div>
+                            <button id="calc-btn" onclick="calculateEstimate()" disabled class="w-full py-4 rounded-xl font-bold transition-all flex justify-center items-center gap-2 bg-stone-100 text-stone-400 cursor-not-allowed">
+                                Calculer l'estimation
+                            </button>
+                        </div>
 
-  if (submitted) {
-    return (
-      <div className="text-center py-8 animate-fade-in">
-        <CheckCircle2 className="w-16 h-16 text-[#d4af37] mx-auto mb-4" />
-        <h3 className="text-2xl font-bold text-white mb-2">Demande envoyée !</h3>
-        <p className="text-white/80">
-          Alexandre vous rappellera très rapidement au numéro indiqué. Merci de votre confiance.
-        </p>
-      </div>
-    );
-  }
+                        <!-- Étape 3 (Résultat) -->
+                        <div id="sim-step-3" class="hidden text-center py-6 transition-opacity duration-500">
+                            <div class="w-16 h-16 bg-forest/10 text-forest rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i data-lucide="check-circle-2" class="w-8 h-8"></i>
+                            </div>
+                            <p class="text-stone-500 mb-2">Estimation budgétaire :</p>
+                            <p id="sim-result-text" class="text-4xl font-bold text-forest mb-2">---</p>
+                            <p class="text-xs text-stone-400 mb-8">*Ceci est une estimation. Un devis sur place est nécessaire pour un prix exact.</p>
+                            
+                            <div class="flex flex-col gap-3">
+                                <a href="#rappel" class="w-full py-4 bg-forest text-white rounded-xl font-bold hover:bg-[#1a4231] transition-all">
+                                    Demander une visite gratuite
+                                </a>
+                                <button onclick="goToStep1()" class="text-sm text-stone-500 hover:text-forest underline mt-2">
+                                    Refaire une simulation
+                                </button>
+                            </div>
+                        </div>
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-white/80 text-sm font-medium mb-1">Nom ou Société</label>
-          <input required type="text" className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[#d4af37] transition-colors" placeholder="Jean Dupont" />
+                    </div>
+                </div>
+
+                <!-- RIGHT: DEMANDE DE RAPPEL -->
+                <div class="fade-in-section flex flex-col justify-center" id="rappel" style="transition-delay: 200ms;">
+                    <h2 class="text-3xl md:text-5xl font-bold text-white mb-6 font-serif">Besoin de nous parler ?</h2>
+                    <p class="text-white/80 text-lg mb-10 leading-relaxed">
+                        Remplissez vos disponibilités et Alexandre vous rappellera personnellement pour discuter de votre jardin, planifier une visite technique ou valider un devis.
+                    </p>
+                    
+                    <div class="bg-white/5 backdrop-blur-xl border border-white/20 rounded-3xl p-8" id="callback-container">
+                        <form id="callback-form" onsubmit="submitCallbackForm(event)" class="space-y-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-white/80 text-sm font-medium mb-1">Nom ou Société</label>
+                                    <input required type="text" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-gold transition-colors" placeholder="Jean Dupont">
+                                </div>
+                                <div>
+                                    <label class="block text-white/80 text-sm font-medium mb-1">Téléphone</label>
+                                    <input required type="tel" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-gold transition-colors" placeholder="06 00 00 00 00">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-white/80 text-sm font-medium mb-1">Créneau de rappel souhaité</label>
+                                <div class="relative">
+                                    <i data-lucide="calendar" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50"></i>
+                                    <select class="w-full bg-white/10 border border-white/20 rounded-xl pl-12 pr-4 py-3 text-white appearance-none focus:outline-none focus:border-gold transition-colors [&>option]:text-black">
+                                        <option>Dès que possible</option>
+                                        <option>Matin (8h - 12h)</option>
+                                        <option>Après-midi (14h - 18h)</option>
+                                        <option>Fin de journée (après 18h)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-white/80 text-sm font-medium mb-1">Détails (Optionnel)</label>
+                                <textarea rows="2" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-gold transition-colors resize-none" placeholder="Ex: Taille de cyprès à Calas..."></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-gold text-forest py-4 rounded-xl font-bold hover:bg-white transition-all mt-4 text-lg">
+                                Confirmer la demande
+                            </button>
+                        </form>
+                        
+                        <!-- Message de succès caché par défaut -->
+                        <div id="callback-success" class="hidden text-center py-8">
+                            <i data-lucide="check-circle-2" class="w-16 h-16 text-gold mx-auto mb-4"></i>
+                            <h3 class="text-2xl font-bold text-white mb-2">Demande envoyée !</h3>
+                            <p class="text-white/80">
+                                Alexandre vous rappellera très rapidement au numéro indiqué. Merci de votre confiance.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
-        <div>
-          <label className="block text-white/80 text-sm font-medium mb-1">Téléphone</label>
-          <input required type="tel" className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[#d4af37] transition-colors" placeholder="06 00 00 00 00" />
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section id="avis" class="py-24 bg-cream">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="fade-in-section text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-bold text-forest mb-6 font-serif">Avis de nos clients</h2>
+                <div class="flex justify-center items-center gap-2 mb-4">
+                    <i data-lucide="star" class="w-6 h-6 text-gold fill-current"></i>
+                    <i data-lucide="star" class="w-6 h-6 text-gold fill-current"></i>
+                    <i data-lucide="star" class="w-6 h-6 text-gold fill-current"></i>
+                    <i data-lucide="star" class="w-6 h-6 text-gold fill-current"></i>
+                    <i data-lucide="star" class="w-6 h-6 text-gold fill-current"></i>
+                </div>
+                <p class="text-stone-600 text-lg">Note de 5,0/5 basée sur les avis Google certifiés.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Avis 1 -->
+                <div class="fade-in-section bg-white p-8 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-stone-100 relative h-full flex flex-col" style="transition-delay: 0ms;">
+                    <div class="absolute top-6 right-6 text-stone-200">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/></svg>
+                    </div>
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 bg-forest text-gold rounded-full flex items-center justify-center font-bold text-xl uppercase">J</div>
+                        <div>
+                            <h4 class="font-bold text-stone-800 capitalize">jade ortica</h4>
+                            <div class="flex gap-1">
+                                <i data-lucide="star" class="w-3 h-3 text-gold fill-current"></i><i data-lucide="star" class="w-3 h-3 text-gold fill-current"></i><i data-lucide="star" class="w-3 h-3 text-gold fill-current"></i><i data-lucide="star" class="w-3 h-3 text-gold fill-current"></i><i data-lucide="star" class="w-3 h-3 text-gold fill-current"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-stone-600 italic flex-grow">"Je recommande intervention rapide très professionnel abattage d'un peuplier réussi"</p>
+                    <p class="text-stone-400 text-sm mt-6">il y a 2 mois</p>
+                </div>
+
+                <!-- Avis 2 -->
+                <div class="fade-in-section bg-white p-8 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-stone-100 relative h-full flex flex-col" style="transition-delay: 200ms;">
+                    <div class="absolute top-6 right-6 text-stone-200">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/></svg>
+                    </div>
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 bg-forest text-gold rounded-full flex items-center justify-center font-bold text-xl uppercase">I</div>
+                        <div>
+                            <h4 class="font-bold text-stone-800 capitalize">iliasse saadi</h4>
+                            <div class="flex gap-1">
+                                <i data-lucide="star" class="w-3 h-3 text-gold fill-current"></i><i data-lucide="star" class="w-3 h-3 text-gold fill-current"></i><i data-lucide="star" class="w-3 h-3 text-gold fill-current"></i><i data-lucide="star" class="w-3 h-3 text-gold fill-current"></i><i data-lucide="star" class="w-3 h-3 text-gold fill-current"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-stone-600 italic flex-grow">"J’ai fait appel à Alexandre pour une plantation de différentes plantes ainsi que la pose d’un gazon synthétique dans mon jardin, et je suis absolument ravi du résultat. Le travail est soigné..."</p>
+                    <p class="text-stone-400 text-sm mt-6">il y a 2 semaines</p>
+                </div>
+
+                <!-- Avis 3 -->
+                <div class="fade-in-section bg-white p-8 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-stone-100 relative h-full flex flex-col" style="transition-delay: 400ms;">
+                    <div class="absolute top-6 right-6 text-stone-200">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/></svg>
+                    </div>
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 bg-forest text-gold rounded-full flex items-center justify-center font-bold text-xl uppercase">C</div>
+                        <div>
+                            <h4 class="font-bold text-stone-800 capitalize">christophe Bourrelly</h4>
+                            <div class="flex gap-1">
+                                <i data-lucide="star" class="w-3 h-3 text-gold fill-current"></i><i data-lucide="star" class="w-3 h-3 text-gold fill-current"></i><i data-lucide="star" class="w-3 h-3 text-gold fill-current"></i><i data-lucide="star" class="w-3 h-3 text-gold fill-current"></i><i data-lucide="star" class="w-3 h-3 text-gold fill-current"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-stone-600 italic flex-grow">"Je suis très satisfait, je remercie MR Bouillon et son équipe pour mon jardin, entreprise sérieuse et efficace , je recommande !!"</p>
+                    <p class="text-stone-400 text-sm mt-6">il y a 3 semaines</p>
+                </div>
+            </div>
         </div>
-      </div>
-      <div>
-        <label className="block text-white/80 text-sm font-medium mb-1">Créneau de rappel souhaité</label>
-        <div className="relative">
-          <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
-          <select className="w-full bg-white/10 border border-white/20 rounded-xl pl-12 pr-4 py-3 text-white appearance-none focus:outline-none focus:border-[#d4af37] transition-colors [&>option]:text-black">
-            <option>Dès que possible</option>
-            <option>Matin (8h - 12h)</option>
-            <option>Après-midi (14h - 18h)</option>
-            <option>Fin de journée (après 18h)</option>
-          </select>
+    </section>
+
+    <!-- RECENT WORK BANNER -->
+    <section class="bg-white border-t border-b border-stone-200 py-16">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center gap-8">
+                <div class="fade-in-section w-full md:w-1/3 relative rounded-2xl overflow-hidden shadow-lg h-64">
+                    <img 
+                        src="https://image.pollinations.ai/prompt/Row%20of%20Florentine%20cypress%20trees%20sunny%20garden%20photography?width=800&height=600&nologo=true" 
+                        alt="Cyprès florentins" 
+                        class="w-full h-full object-cover" 
+                        onerror="this.onerror=null; this.src='https://picsum.photos/id/10/800/600';"
+                    />
+                    <div class="absolute inset-0 bg-black/20"></div>
+                    <div class="absolute bottom-4 left-4 bg-white/90 backdrop-blur text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider text-forest">Projet Récent</div>
+                </div>
+                <div class="fade-in-section w-full md:w-2/3" style="transition-delay: 200ms;">
+                    <h3 class="text-2xl font-bold text-forest mb-4 font-serif">Intervention à Calas : Taille de Cyprès Florentins</h3>
+                    <p class="text-stone-600 mb-4 leading-relaxed">
+                        Nous sommes récemment intervenus pour une taille soignée visant à redonner une silhouette élégante et maîtriser la hauteur, tout en préservant la santé des arbres. Les cyprès demandent un entretien régulier pour conserver leur port élancé.
+                    </p>
+                    <ul class="text-stone-600 space-y-2 mb-6">
+                        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-5 h-5 text-gold"></i> Taille structurée et harmonieuse</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-5 h-5 text-gold"></i> Intervention sécurisée</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-5 h-5 text-gold"></i> Évacuation des déchets verts incluse</li>
+                    </ul>
+                </div>
+            </div>
         </div>
-      </div>
-      <div>
-        <label className="block text-white/80 text-sm font-medium mb-1">Détails (Optionnel)</label>
-        <textarea rows="2" className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[#d4af37] transition-colors resize-none" placeholder="Ex: Taille de cyprès à Calas..."></textarea>
-      </div>
-      <button type="submit" className="w-full bg-[#d4af37] text-[#0f291e] py-4 rounded-xl font-bold hover:bg-white transition-all mt-4 text-lg">
-        Confirmer la demande
-      </button>
-    </form>
-  );
-}
+    </section>
+
+    <!-- FOOTER -->
+    <footer id="contact" class="bg-[#0a1c14] pt-20 pb-10 border-t-4 border-gold">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+                
+                <div class="col-span-1 lg:col-span-2">
+                    <div class="flex items-center gap-2 mb-6">
+                        <i data-lucide="leaf" class="w-8 h-8 text-gold"></i>
+                        <span class="text-white text-2xl font-semibold tracking-wide font-serif">
+                            Alexandre Élagage
+                        </span>
+                    </div>
+                    <p class="text-white/60 text-sm leading-relaxed max-w-sm mb-8">
+                        Artisan paysagiste et élagueur professionnel. Expertise, sécurité et respect de l'environnement pour sublimer vos espaces extérieurs à Cabriès et ses environs.
+                    </p>
+                    <div class="flex gap-4">
+                        <a href="https://maps.app.goo.gl/x7KKLDc8JmDsAyra8" target="_blank" rel="noreferrer" class="bg-white/10 hover:bg-gold hover:text-forest text-white p-3 rounded-full transition-colors">
+                            <i data-lucide="map-pin" class="w-5 h-5"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6 tracking-wider uppercase text-sm">Contact & Accès</h4>
+                    <ul class="space-y-4 text-white/70 text-sm">
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="map-pin" class="w-5 h-5 text-gold flex-shrink-0"></i>
+                            <a href="https://maps.app.goo.gl/x7KKLDc8JmDsAyra8" target="_blank" rel="noreferrer" class="hover:text-gold transition-colors">
+                                1217 Chem. des Vaneu<br/>13480 Cabriès
+                            </a>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i data-lucide="phone" class="w-5 h-5 text-gold flex-shrink-0"></i>
+                            <a href="tel:0622529942" class="hover:text-gold transition-colors">06 22 52 99 42</a>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="clock" class="w-5 h-5 text-gold flex-shrink-0"></i>
+                            <span>Ouvert tous les jours<br/>Ferme à 19:30</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6 tracking-wider uppercase text-sm">Liens Rapides</h4>
+                    <ul class="space-y-3 text-white/70 text-sm">
+                        <li><a href="#services" class="hover:text-gold transition-colors">Nos Services</a></li>
+                        <li><a href="#avis" class="hover:text-gold transition-colors">Avis Clients</a></li>
+                        <li><a href="#simulateur" class="hover:text-gold transition-colors">Simulateur de prix</a></li>
+                        <li><a href="#rappel" class="hover:text-gold transition-colors">Prendre Rendez-vous</a></li>
+                    </ul>
+                </div>
+
+            </div>
+            
+            <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-white/40 text-xs">
+                <p>© 2026 Alexandre Élagage. Tous droits réservés.</p>
+                <p>Conception Premium Artisanat</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SCRIPTS VANILLA JS -->
+    <script>
+        // 1. Initialiser les icônes Lucide
+        lucide.createIcons();
+
+        // 2. Gestion de la Navbar au Scroll
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('bg-forest/95', 'backdrop-blur-md', 'shadow-lg');
+                navbar.classList.remove('bg-transparent', 'py-6');
+                navbar.classList.add('py-3');
+            } else {
+                navbar.classList.remove('bg-forest/95', 'backdrop-blur-md', 'shadow-lg', 'py-3');
+                navbar.classList.add('bg-transparent', 'py-6');
+            }
+        });
+
+        // 3. Menu Mobile Toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuIcon = document.getElementById('menu-icon');
+        let isMenuOpen = false;
+
+        mobileMenuBtn.addEventListener('click', () => {
+            isMenuOpen = !isMenuOpen;
+            if (isMenuOpen) {
+                mobileMenu.classList.remove('max-h-0');
+                mobileMenu.classList.add('max-h-96', 'border-t', 'border-white/10');
+                menuIcon.setAttribute('data-lucide', 'x');
+            } else {
+                mobileMenu.classList.add('max-h-0');
+                mobileMenu.classList.remove('max-h-96', 'border-t', 'border-white/10');
+                menuIcon.setAttribute('data-lucide', 'menu');
+            }
+            lucide.createIcons();
+        });
+
+        // Fermer le menu au clic sur un lien
+        document.querySelectorAll('.mobile-link').forEach(link => {
+            link.addEventListener('click', () => {
+                isMenuOpen = false;
+                mobileMenu.classList.add('max-h-0');
+                mobileMenu.classList.remove('max-h-96', 'border-t', 'border-white/10');
+                menuIcon.setAttribute('data-lucide', 'menu');
+                lucide.createIcons();
+            });
+        });
+
+        // 4. Animations au défilement (Intersection Observer)
+        const observerOptions = {
+            threshold: 0.15,
+            rootMargin: "0px 0px -50px 0px"
+        };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target); // Ne joue l'animation qu'une seule fois
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in-section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // 5. Logique du Simulateur de Devis
+        let simService = '';
+        let simSize = '';
+
+        function setService(service) {
+            simService = service;
+            document.getElementById('sim-step-1').classList.add('hidden');
+            document.getElementById('sim-step-2').classList.remove('hidden');
+            
+            // Adapter la question 2 selon le service
+            const questionText = (service === 'amenagement' || service === 'entretien') 
+                ? "2. Taille de la surface ?" 
+                : "2. Taille de l'arbre ?";
+            document.getElementById('sim-step-2-question').innerText = questionText;
+            
+            // Réinitialiser la taille sélectionnée si on revient
+            simSize = '';
+            document.querySelectorAll('.size-btn').forEach(btn => {
+                btn.classList.remove('border-forest', 'bg-forest', 'text-white');
+                btn.classList.add('border-stone-100', 'text-stone-700');
+            });
+            updateCalcBtn();
+        }
+
+        function setSize(size, element) {
+            simSize = size;
+            // Réinitialiser les couleurs de tous les boutons
+            document.querySelectorAll('.size-btn').forEach(btn => {
+                btn.classList.remove('border-forest', 'bg-forest', 'text-white');
+                btn.classList.add('border-stone-100', 'text-stone-700');
+            });
+            // Appliquer les couleurs au bouton cliqué
+            element.classList.remove('border-stone-100', 'text-stone-700');
+            element.classList.add('border-forest', 'bg-forest', 'text-white');
+            updateCalcBtn();
+        }
+
+        function updateCalcBtn() {
+            const btn = document.getElementById('calc-btn');
+            if (simSize) {
+                btn.disabled = false;
+                btn.classList.remove('bg-stone-100', 'text-stone-400', 'cursor-not-allowed');
+                btn.classList.add('bg-gold', 'text-forest', 'hover:bg-[#c49f2b]');
+            } else {
+                btn.disabled = true;
+                btn.classList.add('bg-stone-100', 'text-stone-400', 'cursor-not-allowed');
+                btn.classList.remove('bg-gold', 'text-forest', 'hover:bg-[#c49f2b]');
+            }
+        }
+
+        function calculateEstimate() {
+            const btn = document.getElementById('calc-btn');
+            btn.innerHTML = '<span class="animate-pulse">Calcul en cours...</span>';
+            
+            setTimeout(() => {
+                let min = 0; let max = 0;
+                if (simService === 'elagage') {
+                    min = simSize === 'petit' ? 100 : simSize === 'moyen' ? 250 : 500;
+                    max = simSize === 'petit' ? 250 : simSize === 'moyen' ? 600 : 1500;
+                } else if (simService === 'abattage') {
+                    min = simSize === 'petit' ? 200 : simSize === 'moyen' ? 500 : 1000;
+                    max = simSize === 'petit' ? 450 : simSize === 'moyen' ? 1200 : 3000;
+                } else {
+                    min = 50; max = 300; // Entretien basique
+                }
+                
+                document.getElementById('sim-result-text').innerText = `Environ ${min}€ à ${max}€ *`;
+                document.getElementById('sim-step-2').classList.add('hidden');
+                document.getElementById('sim-step-3').classList.remove('hidden');
+                btn.innerHTML = 'Calculer l\'estimation'; // reset du bouton pour plus tard
+            }, 1200);
+        }
+
+        function goToStep1() {
+            document.getElementById('sim-step-2').classList.add('hidden');
+            document.getElementById('sim-step-3').classList.add('hidden');
+            document.getElementById('sim-step-1').classList.remove('hidden');
+            simService = '';
+            simSize = '';
+        }
+
+        // 6. Formulaire de rappel
+        function submitCallbackForm(e) {
+            e.preventDefault();
+            document.getElementById('callback-form').classList.add('hidden');
+            document.getElementById('callback-success').classList.remove('hidden');
+            // Ici, vous pouvez lier un script d'envoi d'email (comme Formspree, EmailJS ou Netlify Forms)
+        }
+    </script>
+</body>
+</html>
